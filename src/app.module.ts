@@ -9,8 +9,12 @@ import { AuthMiddleware } from "./middleware/auth.middleware"
 import { APP_GUARD } from "@nestjs/core"
 import { AuthGuard2 } from "./guards/auth2.guard"
 import { AuthGuard } from "./guards/auth.guard"
+import { PayController } from "./pay.controller"
 @Module({
-    controllers: [AppController, AccountController],
+
+    controllers: [PayController],
+    // LoggingInterceptor
+    // controllers: [AppController, AccountController],
     providers:[
         // {
         //     provide: "PREFIX",
@@ -21,10 +25,10 @@ import { AuthGuard } from "./guards/auth.guard"
         //     useClass: SimplePipe
         // }
 
-        {
-            provide: APP_GUARD,
-            useClass: AuthGuard,
-        }
+        // {
+        //     provide: APP_GUARD,
+        //     useClass: AuthGuard,
+        // }
     ],
     exports: [
         // AppService

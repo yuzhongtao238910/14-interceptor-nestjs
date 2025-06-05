@@ -30,3 +30,7 @@ export * from "./can-activate.interface"
 export * from "./execution-context.interface"
 
 export * from "./set-metadata.decorator"
+
+export * from "./use-interceptors.decorator"
+
+export * from "./nest-interceptor.interface"
