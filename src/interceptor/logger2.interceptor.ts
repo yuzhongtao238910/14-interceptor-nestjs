@@ -8,7 +8,7 @@ import { Observable, tap } from 'rxjs';
 
 @Injectable()
 export class Logger2Interceptor implements NestInterceptor {
-    intercept(context: ExecutionContext, next): Observable<any> | Promise<Observable<any>> {
+    async intercept(context: ExecutionContext, next) {
         // throw new Error('Method not implemented.');
 
 

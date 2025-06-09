@@ -9,8 +9,9 @@
             "request": "launch",
             "name": "Debug NestJS",
             "runtimeExecutable": "ts-node",
-            "runtimeArgs": ["-r", "tsconfig-paths/register"],
-            "args": ["./src/main.ts"],
+            // "runtimeArgs": ["-r", "tsconfig-paths/register"],
+            // "args": ["./src/main.ts"],
+            "args": ["./rxjs/14.ts"],
             "skipFiles": [
                 "<node_internals>/**"
             ],
