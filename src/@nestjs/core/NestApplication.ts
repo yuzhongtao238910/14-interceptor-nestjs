@@ -7,7 +7,7 @@ import { NestMiddleware, RequestMethod, ArgumentsHost, ExceptionFilter, NestInte
 
 import { INJECTED_TOKENS, DESGIN_PARAMTYPES } from "../common/constant"
 import { defineModule } from "../common/module.decorator"
-import { APP_FILTER, DECORATOR_FACTORY, APP_PIPE, APP_GUARD } from "./constants"
+import { APP_FILTER, DECORATOR_FACTORY, APP_PIPE, APP_GUARD, APP_INTERCEPTOR } from "./constants"
 import { GlobalHttpExceptionFilter } from "../common/http-exception.filter"
 import { PipeTransform } from "@nestjs/common"
 import { ExecutionContext } from "../common"
@@ -16,7 +16,6 @@ import { ForbiddenException } from "@nestjs/common"
 import { FORBIDDEN_RESOURCE } from "./constants"
 import { Reflector } from "./reflector"
 import { from, mergeMap, Observable, of } from "rxjs"
-import { APP_INTERCEPTOR } from "@nestjs/core"
 export class NestApplication {
 
 
@@ -84,7 +83,6 @@ export class NestApplication {
     }
 
     useGlobalPipes(...pipes: PipeTransform[]) {
-        console.log(pipes, 63)
         this.globalPipes.push(...pipes)
     }
 
@@ -414,7 +412,7 @@ export class NestApplication {
                 instanceMap.set(useClass, instance)
             }
         } else {
-            this.addprovider(provider, this.module)
+            this.addprovider(provider, module)
         }
     }
 
@@ -817,7 +815,7 @@ export class NestApplication {
                                     // console.log(val)
                                     // const result = await method.call(controller, ...args)
 
-                                    console.log(result, "result")
+                                    // console.log(result, "result")
 
                                     if (result?.url) {
                                         return res.redirect(res?.statusCode || 302, result?.url)
@@ -862,7 +860,7 @@ export class NestApplication {
                                     _this.callExceptionFilters(error, host, methodFilters, controllerFilters)
                                 },
                                 complete() {
-                                    console.log("complete")
+                                    // console.log("complete")
                                 }
                             })
 
@@ -1091,10 +1089,32 @@ export class NestApplication {
         this.globalInterceptors.push(...interceptors)
     }
 
+    async initGlobalProviders() {
+        for (const [provide, instanceMap] of this.globalProviderMap) {
+            switch (provide) {
+                case APP_INTERCEPTOR:
+                    this.useGlobalInterceptors(...instanceMap.values())
+                    break;
+                case APP_GUARD:
+                    this.useGlobalGuards(...instanceMap.values())
+                    break;
+                case APP_PIPE:
+                    this.useGlobalPipes(...instanceMap.values())
+                    break;
+                case APP_FILTER:
+                    this.useGlobalFilters(...instanceMap.values())
+                    break;
+            }
+        }
+    }
+
     async listen(port: number) {
         // 在这块支持异步
         await this.initProviders()
         await this.initMiddlewares()
+
+
+        await this.initGlobalProviders()
         // await this.initGlobalFilters(); // 初始化全局的过滤器，为了可以使全局的过滤器具有依赖注入的功能哈
 
         // await this.initGlobalPipes(); // 初始化全局的管道哈

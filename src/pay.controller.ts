@@ -1,4 +1,4 @@
-import { Controller, UseInterceptors } from "@nestjs/common";
+import { BadRequestException, Controller, UseInterceptors } from "@nestjs/common";
 import { Get } from "@nestjs/common";
 
 import { Logger1Interceptor } from "./interceptor/logger1.interceptor"
@@ -6,7 +6,9 @@ import { Logger1Interceptor } from "./interceptor/logger1.interceptor"
 import { Logger2Interceptor } from "./interceptor/logger2.interceptor"
 import { Logger4Interceptor } from "./interceptor/logger4.interceptor";
 import { Logger3Interceptor } from "./interceptor/logger3.interceptor";
-
+import { TransformInterceptor } from "./interceptor/transform.interceptor"
+import { ExcludeNullInterceptor } from "./interceptor/excludeNull.interceptor"
+import { ErrorsInterceptor } from "./interceptor/errors.interceptor"
 
 @UseInterceptors(Logger3Interceptor)
 @UseInterceptors(Logger4Interceptor)
@@ -27,6 +29,29 @@ export class PayController {
     async index(){
         console.log("pay----------")
         return "pay"
+    }
+
+    @UseInterceptors(TransformInterceptor)
+    @Get("data") 
+    async data(){
+        console.log("data----------")
+        return "data"
+    }
+
+    
+    @UseInterceptors(ExcludeNullInterceptor)
+    @UseInterceptors(TransformInterceptor)
+    @Get("null") 
+    async null(){
+        console.log("null----------")
+        return null
+    }
+
+    
+    @UseInterceptors(ErrorsInterceptor)
+    @Get("error") 
+    async error(){
+        throw new BadRequestException("!")
     }
 }
 
