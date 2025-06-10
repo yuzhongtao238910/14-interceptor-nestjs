@@ -14,9 +14,10 @@ import { PayController } from "./pay.controller"
 import { Logger5Interceptor } from "./interceptor/logger5.interceptor";
 import { Logger6Interceptor } from "./interceptor/logger6.interceptor";
 import { APP_INTERCEPTOR } from "@nestjs/core"
+import { UploadController } from "./upload.controller"
 @Module({
 
-    controllers: [PayController],
+    controllers: [UploadController],
     // LoggingInterceptor
     // controllers: [AppController, AccountController],
     providers:[
@@ -33,14 +34,14 @@ import { APP_INTERCEPTOR } from "@nestjs/core"
         //     provide: APP_GUARD,
         //     useClass: AuthGuard,
         // }
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: Logger6Interceptor
-        },
-        {
-            provide: APP_INTERCEPTOR,
-            useClass: Logger5Interceptor
-        },
+        // {
+        //     provide: APP_INTERCEPTOR,
+        //     useClass: Logger6Interceptor
+        // },
+        // {
+        //     provide: APP_INTERCEPTOR,
+        //     useClass: Logger5Interceptor
+        // },
         
     ],
     exports: [
