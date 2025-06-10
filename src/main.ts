@@ -4,6 +4,8 @@ import { AppModule } from "./app.module"
 import { CustomExceptionFilter } from "./exception/self-custom-exception.filter"
 import { ValidationPipe } from "@nestjs/common"
 
+import { Logger5Interceptor } from "./interceptor/logger5.interceptor";
+import { Logger6Interceptor } from "./interceptor/logger6.interceptor";
 // import { loggerFunction } from "./middleware/logger.function.middleware"
 
 // function getMiddleware(val) {
@@ -53,6 +55,12 @@ async function bootstrap() {
     // app.useGlobalGuards(new AuthGuard2());
 
     // useGlobalGuards
+
+
+    // 这块只能实例化，无法进行依赖的注入哈
+    // app.useGlobalInterceptors(new Logger6Interceptor())
+    // app.useGlobalInterceptors(new Logger5Interceptor())
+
 
     await app.listen(8080)
 }

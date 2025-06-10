@@ -3,7 +3,7 @@ import express, {
     NextFunction
 } from "express"
 import path from "path"
-import { NestMiddleware, RequestMethod, ArgumentsHost, ExceptionFilter } from "@nestjs/common"
+import { NestMiddleware, RequestMethod, ArgumentsHost, ExceptionFilter, NestInterceptor } from "@nestjs/common"
 
 import { INJECTED_TOKENS, DESGIN_PARAMTYPES } from "../common/constant"
 import { defineModule } from "../common/module.decorator"
@@ -16,6 +16,7 @@ import { ForbiddenException } from "@nestjs/common"
 import { FORBIDDEN_RESOURCE } from "./constants"
 import { Reflector } from "./reflector"
 import { from, mergeMap, Observable, of } from "rxjs"
+import { APP_INTERCEPTOR } from "@nestjs/core"
 export class NestApplication {
 
 
@@ -60,6 +61,18 @@ export class NestApplication {
 
     // 这里存放着全局守卫
     private readonly globalGuards: CanActivate[] = []
+
+    // useGlobalInterceptors
+    // 存放全局拦截器哈
+    private readonly globalInterceptors: NestInterceptor[] = []
+
+
+    private readonly globalProviderMap = new Map([
+        [APP_GUARD, new Map()], // 全局守卫
+        [APP_PIPE, new Map()], // 全局管道
+        [APP_FILTER, new Map()], // 全局过滤器
+        [APP_INTERCEPTOR, new Map()], // 全局拦截器
+    ])
 
 
 
@@ -349,7 +362,8 @@ export class NestApplication {
 
         // 遍历并且添加每一个提供者
         for (const provider of selfProviders) {
-            this.addprovider(provider, this.module)
+            // this.addprovider(provider, this.module)
+            this.processProvider(provider, this.module)
         }
 
         // console.log(this.modulesProviders, "this.modulesProviders")
@@ -363,6 +377,45 @@ export class NestApplication {
         //     console.log(app2, "this.modulesProviders.get(CommonModule)")
         //     console.log(app1 === app2, "this.modulesProviders.get(AppModule) === this.modulesProviders.get(CommonModule)")
         // }, 1000)
+    }
+
+    private processProvider(provider, module) {
+        // 如果这是一个全局的token对应的provider
+        if (this.globalProviderMap.has(provider.provide)) {
+            // 全局的需要特殊处理
+            // 以前都是一个token对应的一个实例
+            // 但是全局的话可以是一个token对应多个实例
+            /**
+             *  providers:[
+                    {
+                        provide: APP_INTERCEPTOR,
+                        useClass: Logger5Interceptor
+                    },
+                    {
+                        provide: APP_INTERCEPTOR,
+                        useClass: Logger6Interceptor
+                    }
+                ],
+
+                let map = {
+                    APP_INTERCEPTOR: {
+                        Logger5Interceptor: new Logger5Interceptor(),
+                        Logger6Interceptor: new Logger6Interceptor()
+                    }
+                }
+
+                // 如果当前的token对应的实例已经存在了，那么就不再需要创建了
+                if (map[provider.provide][useClass]) {}
+             */
+            const instanceMap = this.globalProviderMap.get(provider.provide)
+            const { useClass} = provider
+            if (!instanceMap.has(useClass)) {
+                const instance = new useClass(...this.resolveDependencies(useClass))
+                instanceMap.set(useClass, instance)
+            }
+        } else {
+            this.addprovider(provider, this.module)
+        }
     }
 
     private registerProvidersFromModule(module, ...parentModules) {
@@ -711,7 +764,7 @@ export class NestApplication {
                 // 获取控制器上的绑定的数组哈
                 const methodInterceptors = Reflect.getOwnMetadata("interceptors", method) ?? []
 
-                const interceptors = [...controllerInterceptors, ...methodInterceptors]
+                const interceptors = [...this.globalInterceptors, ...controllerInterceptors, ...methodInterceptors]
 
 
 
@@ -1033,15 +1086,25 @@ export class NestApplication {
         this.globalGuards.push(...guards)
     }
 
+
+    useGlobalInterceptors(...interceptors: NestInterceptor[]) {
+        this.globalInterceptors.push(...interceptors)
+    }
+
     async listen(port: number) {
         // 在这块支持异步
         await this.initProviders()
         await this.initMiddlewares()
-        await this.initGlobalFilters(); // 初始化全局的过滤器，为了可以使全局的过滤器具有依赖注入的功能哈
+        // await this.initGlobalFilters(); // 初始化全局的过滤器，为了可以使全局的过滤器具有依赖注入的功能哈
 
-        await this.initGlobalPipes(); // 初始化全局的管道哈
+        // await this.initGlobalPipes(); // 初始化全局的管道哈
 
-        await this.initGlobalGuards(); // 初始化全局的守卫哈
+        // await this.initGlobalGuards(); // 初始化全局的守卫哈
+
+        // await this.initGlobalInterceptors(); // 初始化全局的拦截器哈
+
+
+
 
         await this.initController(this.module)
         // 调用express实例的listen方法启动一个express的app服务器，监听port端口
