@@ -34,3 +34,5 @@ export * from "./set-metadata.decorator"
 export * from "./use-interceptors.decorator"
 
 export * from "./nest-interceptor.interface"
+
+export * from "./nest-call-handler.interface"

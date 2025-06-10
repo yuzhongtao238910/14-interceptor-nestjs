@@ -9,6 +9,8 @@ import { Logger3Interceptor } from "./interceptor/logger3.interceptor";
 import { TransformInterceptor } from "./interceptor/transform.interceptor"
 import { ExcludeNullInterceptor } from "./interceptor/excludeNull.interceptor"
 import { ErrorsInterceptor } from "./interceptor/errors.interceptor"
+import { CacheInterceptor } from "./interceptor/cache.interceptor"
+import { TimeoutInterceptor } from "./interceptor/timeout.interceptor"
 
 @UseInterceptors(Logger3Interceptor)
 @UseInterceptors(Logger4Interceptor)
@@ -52,6 +54,28 @@ export class PayController {
     @Get("error") 
     async error(){
         throw new BadRequestException("!")
+    }
+
+    // CacheInterceptor
+    @UseInterceptors(CacheInterceptor)
+    @Get("cache") 
+    async cache(){
+        return {
+            id: 1,
+            name: "user"
+        }
+    }
+
+    // TimeoutInterceptor
+    @UseInterceptors(TimeoutInterceptor)
+    @Get("time") 
+    async time(){
+        const res = await new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(1)
+            }, 4000)
+        })
+        return res
     }
 }
 
